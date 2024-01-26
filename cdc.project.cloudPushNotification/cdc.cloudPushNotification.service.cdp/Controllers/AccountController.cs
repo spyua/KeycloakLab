@@ -21,11 +21,19 @@ namespace cdc.cloudPushNotification.service.cdp.Controllers
         [HttpGet(nameof(Login))]
         public async Task<string> Login()
         {
-            var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var idToken = await HttpContext.GetTokenAsync("id_token");
-            var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
+            _logger.LogInformation("Login sucess");
 
-            return "auth check ok";
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            _logger.LogInformation("access_token:" + accessToken);
+
+            var idToken = await HttpContext.GetTokenAsync("id_token");
+            _logger.LogInformation("idToken:" + idToken);
+
+            var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
+            _logger.LogInformation("refreshToken:" + refreshToken);
+
+
+            return "SSO Auth check ok";
         }
 
     }

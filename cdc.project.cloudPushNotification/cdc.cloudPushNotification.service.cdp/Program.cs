@@ -29,19 +29,16 @@ builder.Services.AddAuthentication(options =>
 })
 .AddOpenIdConnect(options =>
 {
-    options.RequireHttpsMetadata = false;
-
-
     options.Authority = builder.Configuration.GetSection("Keycloak")["ServerRealm"];
     options.ClientId = builder.Configuration.GetSection("Keycloak")["ClientId"];
     options.ClientSecret = builder.Configuration.GetSection("Keycloak")["ClientSecret"];
     options.ResponseType = OpenIdConnectResponseType.Code;
 
+    options.RequireHttpsMetadata = false;
+    options.SaveTokens = true;
+
     options.Scope.Add("openid");
     options.Scope.Add("profile");
-
-    // 這行如果你想從HttpContext獲取Token的話你就要加這個設定
-    options.SaveTokens = bool.Parse(builder.Configuration.GetSection("Keycloak")["SaveTokens"]);
     options.TokenValidationParameters = new TokenValidationParameters
     {
         NameClaimType = "preferred_username",
