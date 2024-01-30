@@ -2,12 +2,20 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using pushNotification.service.service.cdp.Core.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton(options =>
+{
+    var cloudConfig = new CloudConfig();
+    cloudConfig.ProjectId = builder.Configuration.GetSection("CloudConfig")["ProjectId"];
+    cloudConfig.TopicId = builder.Configuration.GetSection("CloudConfig")["TopicId"];
+    cloudConfig.SubscriptionId = builder.Configuration.GetSection("CloudConfig")["SubscriptionId"];
+    return cloudConfig;
+});
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -23,9 +31,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(options =>
 {
+    // TODO:待改. 目前無用途...
     options.LoginPath = "/Account/Login";
-
-  
 })
 .AddOpenIdConnect(options =>
 {

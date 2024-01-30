@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace cdc.cloudPushNotification.service.cdp.Controllers
+namespace pushNotification.service.cdp.Controllers
 {
 
+    /// <summary>
+    /// For SSO Login Test Usage
+    /// </summary>
     [ApiController]
     [Route("api/user")]
     public class AccountController : ControllerBase
@@ -36,5 +39,11 @@ namespace cdc.cloudPushNotification.service.cdp.Controllers
             return "SSO Auth check ok";
         }
 
+
+        [HttpGet(nameof(TestGet))]
+        public string TestGet()
+        {
+            return "RESTful Service Wrok";
+        }
     }
 }
