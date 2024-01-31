@@ -1,7 +1,5 @@
 ﻿using Google.Cloud.PubSub.V1;
 using Microsoft.AspNetCore.Mvc;
-using pushNotification.service.cdp.Core.Config;
-
 namespace pushNotification.service.cdp.Controllers
 {
     /// <summary>
@@ -16,6 +14,7 @@ namespace pushNotification.service.cdp.Controllers
         private readonly ILogger<PubSubTestController> _logger;
 
         private SubscriberClient _subscriber;
+
 
         public PubSubTestController(CloudConfig pubSubConfig, ILogger<PubSubTestController> logger)
         {
@@ -53,6 +52,7 @@ namespace pushNotification.service.cdp.Controllers
 
         protected async Task StartSubscriber()
         {
+
             SubscriptionName subscriptionName = SubscriptionName.FromProjectSubscription(_cloudConfig.ProjectId, _cloudConfig.SubscriptionId);
             _subscriber = await SubscriberClient.CreateAsync(subscriptionName);
 

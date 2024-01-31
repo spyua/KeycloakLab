@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using pushNotification.service.cdp.Core.Config;
+using pushNotification.service.cdp;
 
 var builder = WebApplication.CreateBuilder(args);
 

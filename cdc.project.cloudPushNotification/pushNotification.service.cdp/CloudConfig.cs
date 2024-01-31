@@ -1,7 +1,6 @@
-﻿namespace pushNotification.service.cdp.Core.Config
+﻿namespace pushNotification.service.cdp
 {
-    // Wait Debug
-    public class CloudCodnfig
+    public class CloudConfig
     {
         /// <summary>
         /// Cloud Project ID
