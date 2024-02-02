@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using pushNotification.service.cdp;
+using pushNotification.service.cdp.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services.AddSingleton(options =>
     return cloudConfig;
 });
 
+// 注冊 Pub/Sub 訂閱者服務
+builder.Services.AddHostedService<PubSubSubscriberService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -31,7 +34,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(options =>
 {
-    // TODO:待改. 目前無用途...
+    // TODO:待改. 目前無用到...
     options.LoginPath = "/Account/Login";
 })
 .AddOpenIdConnect(options =>
@@ -52,6 +55,21 @@ builder.Services.AddAuthentication(options =>
         NameClaimType = "preferred_username",
         RoleClaimType = "roles"
     };
+
+    // For  Authentication and Authorization print log  
+    options.Events = new OpenIdConnectEvents
+    {
+        OnTokenValidated = ctx =>
+        {         
+            Console.WriteLine($"Token validated for {ctx.Principal.Identity.Name}");
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = ctx =>
+        {
+            Console.WriteLine($"Authentication failed: {ctx.Exception.Message}");
+            return Task.CompletedTask;
+        }
+    };
 });
 
 var app = builder.Build();
@@ -64,9 +82,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
