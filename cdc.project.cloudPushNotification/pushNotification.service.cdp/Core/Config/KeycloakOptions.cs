@@ -10,6 +10,8 @@
         public string GrantType { get; set; }
         public bool SaveTokens { get; set; }
 
+        public string CallbackPath { get; set; }
+
         // For Endpoint Setting
         public string Metadata { get; set; }
         public string TokenExchange { get; set; }

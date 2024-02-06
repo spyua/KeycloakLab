@@ -41,11 +41,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
 })
-.AddCookie(options =>
-{
-    // TODO:待改. 目前無用到...
-    options.LoginPath = "/Account/Login";
-})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddOpenIdConnect(options =>
 {
     var keycloakOptions = builder.Configuration.GetSection("Keycloak").Get<KeycloakOptions>();
@@ -54,6 +50,8 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = keycloakOptions.ClientId;
     options.ClientSecret = keycloakOptions.ClientSecret;
     options.ResponseType = OpenIdConnectResponseType.Code;
+
+    options.CallbackPath = new PathString(keycloakOptions.CallbackPath);
 
     options.RequireHttpsMetadata = false;
     options.SaveTokens = true;
