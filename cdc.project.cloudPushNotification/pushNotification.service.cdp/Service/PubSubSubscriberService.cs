@@ -2,6 +2,9 @@
 
 namespace pushNotification.service.cdp.Service
 {
+    /// <summary>
+    /// For Sub Test Usage
+    /// </summary>
     public class PubSubSubscriberService : BackgroundService
     {
         private readonly CloudConfig _cloudConfig;

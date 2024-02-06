@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using pushNotification.service.cdp;
-using pushNotification.service.cdp.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +17,8 @@ builder.Services.AddSingleton(options =>
     return cloudConfig;
 });
 
-// 注冊 Pub/Sub 訂閱者服務
-builder.Services.AddHostedService<PubSubSubscriberService>();
+// 註冊 Pub/Sub 訂閱者服務 (一註冊就會啟動)
+//builder.Services.AddHostedService<PubSubSubscriberService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -27,6 +27,7 @@ builder.Services.AddSwaggerGen();
 
 
 
+// For SSO Grantflow Setting
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -56,6 +57,12 @@ builder.Services.AddAuthentication(options =>
         RoleClaimType = "roles"
     };
 
+    // GKE走內網.需要設這個.
+    options.BackchannelHttpHandler = new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+    };
+
     // For  Authentication and Authorization print log  
     options.Events = new OpenIdConnectEvents
     {
@@ -81,7 +88,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Configure forwarding headers
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+});
+
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

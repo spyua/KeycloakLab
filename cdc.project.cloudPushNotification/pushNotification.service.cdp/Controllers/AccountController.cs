@@ -20,9 +20,10 @@ namespace pushNotification.service.cdp.Controllers
             _logger = logger;
         }
 
+        // 配置在Program的AddAuthentication處
         [Authorize]
-        [HttpGet(nameof(Login))]
-        public async Task<string> Login()
+        [HttpGet(nameof(LoginSSO))]
+        public async Task<string> LoginSSO()
         {
             _logger.LogInformation("Login sucess");
 
@@ -35,15 +36,14 @@ namespace pushNotification.service.cdp.Controllers
             var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
             _logger.LogInformation("refreshToken:" + refreshToken);
 
-
             return "SSO Auth check ok";
         }
 
-
+        // For Get Test Debug使用
         [HttpGet(nameof(TestGet))]
         public string TestGet()
         {
-            return "RESTful Service Wrok";
+            return "Test Get OK";
         }
     }
 }
