@@ -1,4 +1,5 @@
 ﻿using Google.Cloud.PubSub.V1;
+using pushNotification.service.cdp.Core.Config;
 
 namespace pushNotification.service.cdp.Service
 {

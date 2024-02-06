@@ -1,10 +1,9 @@
-using Google.Api;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using pushNotification.service.cdp;
+using Microsoft.OpenApi.Models;
 using pushNotification.service.cdp.Core.Config;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 // 註冊Keycloak配置
 builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection("Keycloak"));
 builder.Services.AddHttpClient();
+
+builder.Services.AddMemoryCache();
 
 // Add services to the container.
 builder.Services.AddSingleton(options =>
@@ -63,8 +64,15 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         NameClaimType = "preferred_username",
-        RoleClaimType = "roles"
+        RoleClaimType = "roles",
+        ValidateIssuerSigningKey = true,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidIssuer = options.Authority,
+        ValidAudience = options.ClientId,
+        // and other parameters to validate
     };
+
 
     // GKE走內網.需要設這個.
     options.BackchannelHttpHandler = new HttpClientHandler
@@ -86,6 +94,38 @@ builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         }
     };
+});
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CDP API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme (Example: 'Bearer 12345abcdef')",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header,
+            },
+            new List<string>()
+        }
+    });
 });
 
 var app = builder.Build();

@@ -1,5 +1,6 @@
 ﻿using Google.Cloud.PubSub.V1;
 using Microsoft.AspNetCore.Mvc;
+using pushNotification.service.cdp.Core.Config;
 namespace pushNotification.service.cdp.Controllers
 {
     /// <summary>

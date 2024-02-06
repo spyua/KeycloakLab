@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Google.Apis.Auth.OAuth2.Responses;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -19,14 +21,19 @@ namespace pushNotification.service.cdp.Controllers
 
         private readonly ILogger<AccountController> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IMemoryCache _memoryCache;
+
         private readonly KeycloakOptions _keycloakOptions;
+
         public AccountController(ILogger<AccountController> logger
                                , IHttpClientFactory httpClientFactory
-                               , IOptions<KeycloakOptions> keycloakOptions)
+                               , IOptions<KeycloakOptions> keycloakOptions
+                               , IMemoryCache memoryCache)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _keycloakOptions = keycloakOptions.Value;
+            _memoryCache = memoryCache;     
         }
 
         [HttpGet(nameof(Login))]
@@ -35,6 +42,7 @@ namespace pushNotification.service.cdp.Controllers
             
             try
             {
+                // Debug config value
                 var debugKeycloakConfig = JsonConvert.SerializeObject(_keycloakOptions);
                 _logger.LogInformation(debugKeycloakConfig);
             }catch(Exception ex)
@@ -42,6 +50,7 @@ namespace pushNotification.service.cdp.Controllers
                 _logger.LogError("Json SerializeObject Fail");
             }
 
+            // Step1:Post keycloak token endpoint
             var client = _httpClientFactory.CreateClient();
 
             var requestBody = new FormUrlEncodedContent(new[]
@@ -58,16 +67,39 @@ namespace pushNotification.service.cdp.Controllers
                 _logger.LogError($"Error fetching token: {error}");
                 return "Error fetching token";
             }
+            var tokenResponse = await response.Content.ReadAsStringAsync();
 
-            var token = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("Token received: " + token);
-            return token;
+
+            // Step2 : Parse response json in Cache       
+            var tokenObj = JsonConvert.DeserializeObject<TokenResponse>(tokenResponse);
+
+            // 檢查ExpiresInSeconds是否有值
+            if (tokenObj.ExpiresInSeconds.HasValue)
+            {
+                // 獲取ExpiresInSeconds的值
+                long expiresIn = tokenObj.ExpiresInSeconds.Value;
+
+                // 存儲Token到Cache
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    // 設置Cache過期時間，(Token過期前一分鐘)
+                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(expiresIn - 60));
+                _memoryCache.Set("access_token", tokenObj.AccessToken, cacheEntryOptions);
+            }
+            else
+            {
+                _logger.LogError("Token expiration time is missing.");
+            }
+
+
+
+            _logger.LogInformation("Token received: " + tokenResponse);
+            return tokenResponse;
         }
 
         // 配置在Program的AddAuthentication處
         [Authorize]
-        [HttpGet(nameof(LoginAuthorize))]
-        public async Task<string> LoginAuthorize()
+        [HttpGet(nameof(LoginAuth))]
+        public async Task<string> LoginAuth()
         {
             _logger.LogInformation("Login sucess");
 

@@ -17,8 +17,6 @@ namespace pushNotification.service.cdp.Controllers
         [HttpGet]
         public string GetRoot()
         {
-            logger.LogInformation("Health check");
-
             return "RESTful Service Work";
         }
     }

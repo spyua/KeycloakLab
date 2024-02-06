@@ -1,4 +1,4 @@
-﻿namespace pushNotification.service.cdp
+﻿namespace pushNotification.service.cdp.Core.Config
 {
     public class CloudOption
     {
