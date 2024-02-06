@@ -1,6 +1,6 @@
 ﻿namespace pushNotification.service.cdp
 {
-    public class CloudConfig
+    public class CloudOption
     {
         /// <summary>
         /// Cloud Project ID

@@ -7,11 +7,11 @@ namespace pushNotification.service.cdp.Service
     /// </summary>
     public class PubSubSubscriberService : BackgroundService
     {
-        private readonly CloudConfig _cloudConfig;
+        private readonly CloudOption _cloudConfig;
         private readonly ILogger<PubSubSubscriberService> _logger;
         private SubscriberClient _subscriber;
 
-        public PubSubSubscriberService(CloudConfig cloudConfig, ILogger<PubSubSubscriberService> logger)
+        public PubSubSubscriberService(CloudOption cloudConfig, ILogger<PubSubSubscriberService> logger)
         {
             _cloudConfig = cloudConfig;
             _logger = logger;

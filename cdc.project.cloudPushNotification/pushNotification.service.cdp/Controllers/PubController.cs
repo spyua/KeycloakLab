@@ -10,12 +10,12 @@ namespace pushNotification.service.cdp.Controllers
     [Route("api/pub")]
     public class PubController : ControllerBase
     {
-        private readonly CloudConfig _cloudConfig; 
+        private readonly CloudOption _cloudConfig; 
         private readonly ILogger<PubController> _logger;
 
         private SubscriberClient _subscriber;
        
-        public PubController(CloudConfig pubSubConfig, ILogger<PubController> logger)
+        public PubController(CloudOption pubSubConfig, ILogger<PubController> logger)
         {
             _cloudConfig = pubSubConfig;
             _logger = logger;

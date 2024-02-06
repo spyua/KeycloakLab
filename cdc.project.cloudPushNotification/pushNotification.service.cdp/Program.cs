@@ -1,16 +1,23 @@
+using Google.Api;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using pushNotification.service.cdp;
+using pushNotification.service.cdp.Core.Config;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// µù¥UKeycloak°t¸m
+builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection("Keycloak"));
+builder.Services.AddHttpClient();
 
 // Add services to the container.
 builder.Services.AddSingleton(options =>
 {
-    var cloudConfig = new CloudConfig();
+    var cloudConfig = new CloudOption();
     cloudConfig.ProjectId = builder.Configuration.GetSection("CloudConfig")["ProjectId"];
     cloudConfig.TopicId = builder.Configuration.GetSection("CloudConfig")["TopicId"];
     cloudConfig.SubscriptionId = builder.Configuration.GetSection("CloudConfig")["SubscriptionId"];
@@ -40,9 +47,11 @@ builder.Services.AddAuthentication(options =>
 })
 .AddOpenIdConnect(options =>
 {
-    options.Authority = builder.Configuration.GetSection("Keycloak")["ServerRealm"];
-    options.ClientId = builder.Configuration.GetSection("Keycloak")["ClientId"];
-    options.ClientSecret = builder.Configuration.GetSection("Keycloak")["ClientSecret"];
+    var keycloakOptions = builder.Configuration.GetSection("Keycloak").Get<KeycloakOptions>();
+
+    options.Authority = keycloakOptions.ServerRealmEndpoint;
+    options.ClientId = keycloakOptions.ClientId;
+    options.ClientSecret = keycloakOptions.ClientSecret;
     options.ResponseType = OpenIdConnectResponseType.Code;
 
     options.RequireHttpsMetadata = false;
