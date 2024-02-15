@@ -5,37 +5,26 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using pushNotification.service.cdp.Core.Config;
+using pushNotification.service.cdp.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-// 註冊Keycloak配置
 builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection("Keycloak"));
+builder.Services.Configure<CloudOption>(builder.Configuration.GetSection("CloudOption"));
+
 builder.Services.AddHttpClient();
-
 builder.Services.AddMemoryCache();
-
-// Add services to the container.
-builder.Services.AddSingleton(options =>
-{
-    var cloudConfig = new CloudOption();
-    cloudConfig.ProjectId = builder.Configuration.GetSection("CloudConfig")["ProjectId"];
-    cloudConfig.TopicId = builder.Configuration.GetSection("CloudConfig")["TopicId"];
-    cloudConfig.SubscriptionId = builder.Configuration.GetSection("CloudConfig")["SubscriptionId"];
-    return cloudConfig;
-});
-
-// 註冊 Pub/Sub 訂閱者服務 (一註冊就會啟動)
-//builder.Services.AddHostedService<PubSubSubscriberService>();
+builder.Services.AddHostedService<PubSubSubscriberService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
 
 
 
-// For SSO Grantflow Setting
+// SSO Midleware 配置參考
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -83,6 +72,8 @@ builder.Services.AddAuthentication(options =>
     {
         OnRedirectToIdentityProvider = context =>
         {
+            // 這段For特規系統流程.照理來說IDP
+
             // 獲取當前請求的基礎URL部分（協議+主機名+端口）
             var request = context.Request;
             var baseUrl = $"{request.Scheme}://{request.Host}";
@@ -91,7 +82,7 @@ builder.Services.AddAuthentication(options =>
             var originalQueryString = request.QueryString.Value;
 
             // 組合成完整的URL
-            var fullUrl = baseUrl + request.Path + originalQueryString;
+            var redirectUrl = baseUrl + request.Path + originalQueryString;
 
             var entireQueryString = context.HttpContext.Request.QueryString.ToString();
             Console.WriteLine($"Captured Query String: {entireQueryString}");
@@ -101,7 +92,7 @@ builder.Services.AddAuthentication(options =>
                 context.ProtocolMessage.SetParameter("client_id", keycloakOptions.ClientId);
                 context.ProtocolMessage.SetParameter("response_type", "code");
                 context.ProtocolMessage.SetParameter("scope", "openid");
-                context.ProtocolMessage.SetParameter("redirect_uri", "111");
+                context.ProtocolMessage.SetParameter("redirect_uri", redirectUrl);
             }
 
             return Task.CompletedTask;

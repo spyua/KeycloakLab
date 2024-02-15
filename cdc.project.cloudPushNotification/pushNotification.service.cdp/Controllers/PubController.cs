@@ -11,14 +11,14 @@ namespace pushNotification.service.cdp.Controllers
     [Route("api/pub")]
     public class PubController : ControllerBase
     {
-        private readonly CloudOption _cloudConfig; 
+        private readonly CloudOption _cloudOption; 
         private readonly ILogger<PubController> _logger;
 
         private SubscriberClient _subscriber;
        
-        public PubController(CloudOption pubSubConfig, ILogger<PubController> logger)
+        public PubController(CloudOption cloudOption, ILogger<PubController> logger)
         {
-            _cloudConfig = pubSubConfig;
+            _cloudOption = cloudOption;
             _logger = logger;
 
         }
@@ -27,7 +27,7 @@ namespace pushNotification.service.cdp.Controllers
         public async Task<IActionResult> PublishMessage([FromBody] string message)
         {
             
-            TopicName topicName = TopicName.FromProjectTopic(_cloudConfig.ProjectId, _cloudConfig.TopicId);
+            TopicName topicName = TopicName.FromProjectTopic(_cloudOption.ProjectId, _cloudOption.TopicId);
             _logger.LogInformation("Topic ID:" + topicName.TopicId);
           
             PublisherClient publisher = await PublisherClient.CreateAsync(topicName);

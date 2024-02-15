@@ -35,6 +35,26 @@ namespace pushNotification.service.cdp.Controllers
             _memoryCache = memoryCache;     
         }
 
+        // 走SSO Midleware 配置在Program的AddAuthentication處
+        [Authorize]
+        [HttpGet(nameof(LoginSSO))]
+        public async Task<string> LoginSSO()
+        {
+            _logger.LogInformation("Login sucess");
+
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            _logger.LogInformation("access_token:" + accessToken);
+
+            var idToken = await HttpContext.GetTokenAsync("id_token");
+            _logger.LogInformation("idToken:" + idToken);
+
+            var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
+            _logger.LogInformation("refreshToken:" + refreshToken);
+
+            return "SSO Auth check ok";
+        }
+
+
         // 測試用
         [HttpGet(nameof(GetTokenCustomData))]
         public async Task<IActionResult> GetTokenCustomData()
@@ -62,7 +82,7 @@ namespace pushNotification.service.cdp.Controllers
             return BadRequest("無法從Keycloak獲得回應");
         }
 
-
+        // 測試用
         [HttpGet(nameof(Login))]
         public async Task<string> Login()
         {
@@ -123,26 +143,7 @@ namespace pushNotification.service.cdp.Controllers
             return tokenResponse;
         }
 
-        // 配置在Program的AddAuthentication處
-        [Authorize]
-        [HttpGet(nameof(LoginAuth))]
-        public async Task<string> LoginAuth()
-        {
-            _logger.LogInformation("Login sucess");
-
-            var accessToken = await HttpContext.GetTokenAsync("access_token");
-            _logger.LogInformation("access_token:" + accessToken);
-
-            var idToken = await HttpContext.GetTokenAsync("id_token");
-            _logger.LogInformation("idToken:" + idToken);
-
-            var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
-            _logger.LogInformation("refreshToken:" + refreshToken);
-
-            return "SSO Auth check ok";
-        }
-
-        // For Get Test Debug使用
+        // 測試用
         [HttpGet(nameof(TestGet))]
         public string TestGet()
         {
