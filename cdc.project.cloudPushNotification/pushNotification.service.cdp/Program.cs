@@ -81,6 +81,32 @@ builder.Services.AddAuthentication(options =>
     // For  Authentication and Authorization print log  
     options.Events = new OpenIdConnectEvents
     {
+        OnRedirectToIdentityProvider = context =>
+        {
+            // 獲取當前請求的基礎URL部分（協議+主機名+端口）
+            var request = context.Request;
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+
+            // 假設你想要將原始的查詢參數保持不變並加到這個基礎URL後面
+            var originalQueryString = request.QueryString.Value;
+
+            // 組合成完整的URL
+            var fullUrl = baseUrl + request.Path + originalQueryString;
+
+            var entireQueryString = context.HttpContext.Request.QueryString.ToString();
+            Console.WriteLine($"Captured Query String: {entireQueryString}");
+
+            if (!string.IsNullOrEmpty(entireQueryString))
+            {
+                context.ProtocolMessage.SetParameter("client_id", keycloakOptions.ClientId);
+                context.ProtocolMessage.SetParameter("response_type", "code");
+                context.ProtocolMessage.SetParameter("scope", "openid");
+                context.ProtocolMessage.SetParameter("redirect_uri", "111");
+            }
+
+            return Task.CompletedTask;
+        },
+
         OnTokenValidated = ctx =>
         {         
             Console.WriteLine($"Token validated for {ctx.Principal.Identity.Name}");

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using pushNotification.service.cdp.Core.Config;
@@ -35,6 +34,34 @@ namespace pushNotification.service.cdp.Controllers
             _keycloakOptions = keycloakOptions.Value;
             _memoryCache = memoryCache;     
         }
+
+        // 測試用
+        [HttpGet(nameof(GetTokenCustomData))]
+        public async Task<IActionResult> GetTokenCustomData()
+        {
+         
+            var client = _httpClientFactory.CreateClient();
+            var authUri = "https://ovs-cp-lnk-01-keycloak.gcubut.gcp.uwccb/realms/ChannelWeb/protocol/openid-connect/auth";
+
+            var requestContent = new FormUrlEncodedContent(new[]
+            {
+            new KeyValuePair<string, string>("client_id", "ChannelWebSSO"),
+            new KeyValuePair<string, string>("response_type", "code"),
+            new KeyValuePair<string, string>("scope", "openid"),
+             new KeyValuePair<string, string>("redirect_uri", "https://localhost:51022/*?Token=E7E7668DDE87421E9068B978D54AA275&UserID=95352&EncTicket=F7DCB55B1A27C6294C04B81C83C45B3F&username=95352&langCode=ZHT&ssousername=95352&clientType=&site2pstoretoken=&AppName=X100206&Field=Int"),
+            });
+
+            var response = await client.PostAsync(authUri, requestContent);
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                // 處理回應內容
+                return Content(responseContent);
+            }
+
+            return BadRequest("無法從Keycloak獲得回應");
+        }
+
 
         [HttpGet(nameof(Login))]
         public async Task<string> Login()

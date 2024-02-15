@@ -4,7 +4,7 @@ namespace pushNotification.service.cdp.Controllers
 {
 
     [ApiController]
-    [Route("/health")]
+    [Route("/")]
     public class HealthCheckController
     {
         private readonly ILogger<HealthCheckController> logger;
