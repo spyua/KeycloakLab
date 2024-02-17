@@ -37,7 +37,9 @@ namespace pushNotification.service.cdp.Controllers
 
         // 走SSO Midleware 配置在Program的AddAuthentication處
         [Authorize]
-        [HttpGet(nameof(LoginSSO))]
+        [Route("loginsso")]
+        [AcceptVerbs("GET", "POST")]
+        //[HttpGet(nameof(LoginSSO))]
         public async Task<string> LoginSSO()
         {
             _logger.LogInformation("Login sucess");
@@ -144,10 +146,21 @@ namespace pushNotification.service.cdp.Controllers
         }
 
         // 測試用
-        [HttpGet(nameof(TestGet))]
-        public string TestGet()
+        [HttpPost(nameof(TestGet))]
+        public IActionResult TestGet()
         {
-            return "Test Get OK";
+            _logger.LogInformation("Login sucess");
+
+            var accessToken =  HttpContext.GetTokenAsync("access_token");
+            _logger.LogInformation("access_token:" + accessToken);
+
+            var idToken =  HttpContext.GetTokenAsync("id_token");
+            _logger.LogInformation("idToken:" + idToken);
+
+            var refreshToken =  HttpContext.GetTokenAsync("refresh_token");
+            _logger.LogInformation("refreshToken:" + refreshToken);
+
+            return Redirect("https://google.com/");
         }
     }
 }

@@ -72,6 +72,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnRedirectToIdentityProvider = context =>
         {
+
             // 這段For特規系統流程.照理來說IDP
 
             // 獲取當前請求的基礎URL部分（協議+主機名+端口）
@@ -80,24 +81,10 @@ builder.Services.AddAuthentication(options =>
 
             // 假設你想要將原始的查詢參數保持不變並加到這個基礎URL後面
             var originalQueryString = request.QueryString.Value;
-
-            // 組合成完整的URL
-            var redirectUrl = baseUrl + request.Path + originalQueryString;
-
-            var entireQueryString = context.HttpContext.Request.QueryString.ToString();
-            Console.WriteLine($"Captured Query String: {entireQueryString}");
-
-            if (!string.IsNullOrEmpty(entireQueryString))
-            {
-                context.ProtocolMessage.SetParameter("client_id", keycloakOptions.ClientId);
-                context.ProtocolMessage.SetParameter("response_type", "code");
-                context.ProtocolMessage.SetParameter("scope", "openid");
-                context.ProtocolMessage.SetParameter("redirect_uri", redirectUrl);
-            }
-
+            var redirectUrl = baseUrl + "/api/user/TestGet" + originalQueryString;
+            context.ProtocolMessage.RedirectUri = redirectUrl;
             return Task.CompletedTask;
         },
-
         OnTokenValidated = ctx =>
         {         
             Console.WriteLine($"Token validated for {ctx.Principal.Identity.Name}");
