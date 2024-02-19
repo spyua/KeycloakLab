@@ -69,30 +69,34 @@ builder.Services.AddAuthentication(options =>
 
     // For  Authentication and Authorization print log  
     options.Events = new OpenIdConnectEvents
-    {
+    { 
         OnRedirectToIdentityProvider = context =>
         {
-
-            // 這段For特規系統流程.照理來說IDP
-
-            // 獲取當前請求的基礎URL部分（協議+主機名+端口）
             var request = context.Request;
             var baseUrl = $"{request.Scheme}://{request.Host}";
-
-            // 假設你想要將原始的查詢參數保持不變並加到這個基礎URL後面
+            // For keycloak plugin處理，append QueryString
             var originalQueryString = request.QueryString.Value;
-            var redirectUrl = baseUrl + "/api/user/TestGet" + originalQueryString;
-            context.ProtocolMessage.RedirectUri = redirectUrl;
+            context.ProtocolMessage.RedirectUri = context.ProtocolMessage.RedirectUri + originalQueryString;
+            Console.WriteLine($"Redirect to identityProvider, the RedirectUri is {context.ProtocolMessage.RedirectUri}");
             return Task.CompletedTask;
         },
-        OnTokenValidated = ctx =>
-        {         
-            Console.WriteLine($"Token validated for {ctx.Principal.Identity.Name}");
-            return Task.CompletedTask;
-        },
-        OnAuthenticationFailed = ctx =>
+        OnAuthorizationCodeReceived = context =>
         {
-            Console.WriteLine($"Authentication failed: {ctx.Exception.Message}");
+            Console.WriteLine($"Authorization code received, the code is {context.ProtocolMessage.Code}");
+            return Task.CompletedTask;
+        },
+        OnTokenResponseReceived = context =>
+        {
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {         
+            Console.WriteLine($"Token validated for {context.Principal.Identity.Name}");
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
             return Task.CompletedTask;
         }
     };
