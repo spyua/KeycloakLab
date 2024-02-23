@@ -40,7 +40,7 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = keycloakOptions.ClientSecret;
     options.ResponseType = OpenIdConnectResponseType.Code;
 
-    options.CallbackPath = new PathString(keycloakOptions.CallbackPath);
+    //options.CallbackPath = new PathString(keycloakOptions.CallbackPath);
 
     options.RequireHttpsMetadata = false;
     options.SaveTokens = true;
@@ -80,20 +80,19 @@ builder.Services.AddAuthentication(options =>
             Console.WriteLine($"Redirect to identityProvider, the RedirectUri is {context.ProtocolMessage.RedirectUri}");
             return Task.CompletedTask;
         },
+
         OnAuthorizationCodeReceived = context =>
         {
             Console.WriteLine($"Authorization code received, the code is {context.ProtocolMessage.Code}");
             return Task.CompletedTask;
         },
-        OnTokenResponseReceived = context =>
-        {
-            return Task.CompletedTask;
-        },
+ 
         OnTokenValidated = context =>
         {         
             Console.WriteLine($"Token validated for {context.Principal.Identity.Name}");
             return Task.CompletedTask;
         },
+        
         OnAuthenticationFailed = context =>
         {
             Console.WriteLine($"Authentication failed: {context.Exception.Message}");

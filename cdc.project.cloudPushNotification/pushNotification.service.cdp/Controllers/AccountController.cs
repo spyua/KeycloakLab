@@ -6,6 +6,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using pushNotification.service.cdp.Core.Config;
+using System.Net.Http.Headers;
+using System.Web;
 
 namespace pushNotification.service.cdp.Controllers
 {
@@ -21,8 +23,7 @@ namespace pushNotification.service.cdp.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMemoryCache _memoryCache;
-
-        private readonly KeycloakOptions _keycloakOptions;
+        private readonly KeycloakOptions _keycloakConfig;
 
         public AccountController(ILogger<AccountController> logger
                                , IHttpClientFactory httpClientFactory
@@ -31,7 +32,7 @@ namespace pushNotification.service.cdp.Controllers
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
-            _keycloakOptions = keycloakOptions.Value;
+            _keycloakConfig = keycloakOptions.Value;
             _memoryCache = memoryCache;     
         }
 
@@ -55,30 +56,66 @@ namespace pushNotification.service.cdp.Controllers
         }
 
         // 測試用(打Keycloak Auth API)
-        [HttpGet(nameof(GetTokenCustomData))]
-        public async Task<IActionResult> GetTokenCustomData()
+        [HttpGet(nameof(CustomLoginSSO))]
+        public IActionResult CustomLoginSSO()
         {
-         
+            // Keycloak的授權端點URL
+            var authRequestUri = "http://localhost:8082/realms/api-role-lab/protocol/openid-connect/auth";
+
+            _memoryCache.Set("querystr", Request.QueryString);
+            // 重導向URI - 用戶完成登入後將被重導回此URI，並附帶授權碼
+            var redirectUri = $"https://localhost:7297/api/user/CustomLoginSSOCallback{Request.QueryString}";
+
+            // 構建授權請求的查詢參數
+            var queryParams = new Dictionary<string, string>
+             {
+                 {"client_id", _keycloakConfig.ClientId},
+                 {"response_type", "code"},
+                 {"scope", "openid"},
+                 {"redirect_uri", redirectUri}
+                 // 可選：如果需要，可以加入"state"和"nonce"參數以增強安全性
+             };
+
+            // 將查詢參數轉換為URL編碼的字串
+            var queryString = string.Join("&", queryParams.Select(kv => $"{HttpUtility.UrlEncode(kv.Key)}={HttpUtility.UrlEncode(kv.Value)}"));
+
+            // 完整的重導向URL
+            var finalRedirectUri = $"{authRequestUri}?{queryString}";
+
+            // 重導向到Keycloak的登入頁面
+            return Redirect(finalRedirectUri);
+        }
+        
+        [HttpGet(nameof(CustomLoginSSOCallback))]
+        public async Task<IActionResult> CustomLoginSSOCallback(string code) // 接收授權碼
+        {
+            var tokenEndpoint = "http://localhost:8082/realms/api-role-lab/protocol/openid-connect/token";
             var client = _httpClientFactory.CreateClient();
-            var authUri = "https://ovs-cp-lnk-01-keycloak.gcubut.gcp.uwccb/realms/ChannelWeb/protocol/openid-connect/auth";
 
-            var requestContent = new FormUrlEncodedContent(new[]
+            var idpQueryInfo = _memoryCache.Get("querystr");
+            // 確保這裡的redirect_uri與原始授權請求中的redirect_uri完全一致
+            var redirectUri = $"https://localhost:7297/api/user/CustomLoginSSOCallback{idpQueryInfo}";
+
+            var tokenRequestContent = new FormUrlEncodedContent(new[]
             {
-            new KeyValuePair<string, string>("client_id", "ChannelWebSSO"),
-            new KeyValuePair<string, string>("response_type", "code"),
-            new KeyValuePair<string, string>("scope", "openid"),
-             new KeyValuePair<string, string>("redirect_uri", "https://localhost:51022/*?Token=E7E7668DDE87421E9068B978D54AA275&UserID=95352&EncTicket=F7DCB55B1A27C6294C04B81C83C45B3F&username=95352&langCode=ZHT&ssousername=95352&clientType=&site2pstoretoken=&AppName=X100206&Field=Int"),
-            });
+                 new KeyValuePair<string, string>("grant_type", "authorization_code"),
+                 new KeyValuePair<string, string>("client_id", _keycloakConfig.ClientId),
+                 new KeyValuePair<string, string>("client_secret", _keycloakConfig.ClientSecret), // 如果客戶端是機密的，需要此參數
+                 new KeyValuePair<string, string>("code", code),
+                 new KeyValuePair<string, string>("redirect_uri", redirectUri)
+             });
 
-            var response = await client.PostAsync(authUri, requestContent);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+            var response = await client.PostAsync(tokenEndpoint, tokenRequestContent);
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                // 處理回應內容
-                return Content(responseContent);
+                // 解析回應內容來獲取令牌
+                // 處理令牌（例如，保存令牌，使用令牌調用受保護的資源等）
+                return Ok(responseContent); // 或者將用戶導向另一個頁面
             }
 
-            return BadRequest("無法從Keycloak獲得回應");
+            return BadRequest("無法從Keycloak獲得令牌");
         }
 
         // 測試用(打Keycloak API索取Token)
@@ -89,7 +126,7 @@ namespace pushNotification.service.cdp.Controllers
             try
             {
                 // Debug config value
-                var debugKeycloakConfig = JsonConvert.SerializeObject(_keycloakOptions);
+                var debugKeycloakConfig = JsonConvert.SerializeObject(_keycloakConfig);
                 _logger.LogInformation(debugKeycloakConfig);
             }catch(Exception ex)
             {
@@ -102,12 +139,12 @@ namespace pushNotification.service.cdp.Controllers
 
             var requestBody = new FormUrlEncodedContent(new[]
             {
-                new KeyValuePair<string, string>("grant_type", _keycloakOptions.GrantType),
-                new KeyValuePair<string, string>("client_id", _keycloakOptions.ClientId),
-                new KeyValuePair<string, string>("client_secret", _keycloakOptions.ClientSecret)
+                new KeyValuePair<string, string>("grant_type", _keycloakConfig.GrantType),
+                new KeyValuePair<string, string>("client_id", _keycloakConfig.ClientId),
+                new KeyValuePair<string, string>("client_secret", _keycloakConfig.ClientSecret)
             });
 
-            var response = await client.PostAsync(_keycloakOptions.POSTTokenEndpoint, requestBody);
+            var response = await client.PostAsync(_keycloakConfig.POSTTokenEndpoint, requestBody);
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
