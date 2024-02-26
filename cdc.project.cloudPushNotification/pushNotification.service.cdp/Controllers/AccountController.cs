@@ -90,7 +90,7 @@ namespace pushNotification.service.cdp.Controllers
         public async Task<IActionResult> CustomLoginSSOCallback(string code) // 接收授權碼
         {
             var tokenEndpoint = "http://localhost:8082/realms/api-role-lab/protocol/openid-connect/token";
-            var client = _httpClientFactory.CreateClient();
+            var client = _httpClientFactory.CreateClient("MyClient");
 
             var idpQueryInfo = _memoryCache.Get("querystr");
             // 確保這裡的redirect_uri與原始授權請求中的redirect_uri完全一致

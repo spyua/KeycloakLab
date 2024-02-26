@@ -1,3 +1,4 @@
+using Google.Api;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -5,14 +6,24 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using pushNotification.service.cdp.Core.Config;
+using pushNotification.service.cdp.Hanlder;
+using pushNotification.service.cdp.Middleware;
 using pushNotification.service.cdp.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// 配置服務日誌
+builder.Services.AddLogging();
+
 builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection("Keycloak"));
 builder.Services.Configure<CloudOption>(builder.Configuration.GetSection("CloudOption"));
 
-builder.Services.AddHttpClient();
+builder.Services.AddTransient<LoggingDelegatingHandler>();
+//builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("MyClient")
+        .AddHttpMessageHandler<LoggingDelegatingHandler>();
+
 builder.Services.AddMemoryCache();
 builder.Services.AddHostedService<PubSubSubscriberService>();
 
@@ -147,6 +158,8 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
 });
+
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
