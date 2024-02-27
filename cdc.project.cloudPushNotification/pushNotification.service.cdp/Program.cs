@@ -21,7 +21,7 @@ builder.Services.Configure<CloudOption>(builder.Configuration.GetSection("CloudO
 
 builder.Services.AddTransient<LoggingDelegatingHandler>();
 //builder.Services.AddHttpClient();
-builder.Services.AddHttpClient("MyClient")
+builder.Services.AddHttpClient("LogClient")
         .AddHttpMessageHandler<LoggingDelegatingHandler>();
 
 builder.Services.AddMemoryCache();

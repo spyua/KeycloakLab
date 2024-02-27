@@ -15,13 +15,13 @@
         {
 
             // 在這裡記錄進入的請求信息
-            _logger.LogInformation($"@@@@@Incoming request: {context.Request.Method} {context.Request.Path}");
-            Console.WriteLine($"@@@@@Incoming request: {context.Request.Method} {context.Request.Path}");
+            _logger.LogInformation($"Middlewar Incoming request: {context.Request.Method} {context.Request.Path}");
+            Console.WriteLine($"Middlewar Incoming request: {context.Request.Method} {context.Request.Path}");
             // 記錄查詢字符串參數
             if (context.Request.QueryString.HasValue)
             {
-                _logger.LogInformation($"@@@@@Query string: {context.Request.QueryString.Value}");
-                Console.WriteLine($"@@@@@Query string: {context.Request.QueryString.Value}");
+                _logger.LogInformation($"Middlewar Query string: {context.Request.QueryString.Value}");
+                Console.WriteLine($"Middlewar Query string: {context.Request.QueryString.Value}");
             }
 
             // 如果需要記錄表單數據，確保請求的Content-Type是application/x-www-form-urlencoded或multipart/form-data
@@ -30,8 +30,8 @@
                 var formData = await context.Request.ReadFormAsync();
                 foreach (var pair in formData)
                 {
-                    _logger.LogInformation($"@@@Form data: {pair.Key} = {pair.Value}");
-                    Console.WriteLine($"@@@@@Form data: {pair.Key} = {pair.Value}");
+                    _logger.LogInformation($"Middlewar Form data: {pair.Key} = {pair.Value}");
+                    Console.WriteLine($"Middlewar Form data: {pair.Key} = {pair.Value}");
                 }
             }
 
