@@ -1,4 +1,3 @@
-using Google.Api;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -14,7 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // 配置服務日誌
-builder.Services.AddLogging();
+//builder.Services.AddLogging();
+
 
 builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection("Keycloak"));
 builder.Services.Configure<CloudOption>(builder.Configuration.GetSection("CloudOption"));

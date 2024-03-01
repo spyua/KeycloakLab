@@ -30,6 +30,7 @@ namespace pushNotification.service.cdp.Controllers
                                , IOptions<KeycloakOptions> keycloakOptions
                                , IMemoryCache memoryCache)
         {
+ 
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _keycloakConfig = keycloakOptions.Value;
@@ -179,10 +180,14 @@ namespace pushNotification.service.cdp.Controllers
         }
 
         // 測試用
-        [Authorize]
+        //[Authorize]
         [HttpGet(nameof(TestGet))]
         public string TestGet()
         {
+
+            _logger.LogInformation("==========================================================");
+
+
             return "RESTful API Work, This is Login API";
         }
     }
