@@ -13,6 +13,7 @@ COPY pushNotification.service.cdp/*.csproj ./pushNotification.service.cdp/
 
 # execute nuget dll restore, avoid testing
 RUN dotnet restore "pushNotification.service.cdp/pushNotification.service.cdp.csproj"
+# RUN dotnet restore "pushNotification.service.cdp/pushNotification.service.cdp.csproj" -s https://api.nuget.org/v3/index.json
 
 # can't not include folder obj/**, use the .dockerignore or it will cause error
 COPY pushNotification.service.cdp/. ./pushNotification.service.cdp/

@@ -11,7 +11,6 @@ using pushNotification.service.cdp.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // 配置服務日誌
 //builder.Services.AddLogging();
 
